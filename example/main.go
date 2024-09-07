@@ -11,7 +11,10 @@ import (
 func main() {
 	logger.Setup(
 		logger.WithSetDefault(),
-		logger.WithTextHandler(os.Stdout, logger.Debug, false),
+		logger.WithJsonHandler(os.Stdout, logger.Debug, false),
+		logger.WithCustomAggregateIdGen(func() string {
+			return "custom-id"
+		}),
 		logger.WithFilter(
 			logger.FindFunc("Get.*"),
 		),

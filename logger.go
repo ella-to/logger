@@ -11,8 +11,9 @@ import (
 
 // These are temporary keys which never logged, they are used to store the
 // package and function name of the caller to be used in the filters
-const pkgAttrKey = "_caller.pkg_"
-const fnAttrKey = "_caller.fn_"
+const pkgAttrKey = "pkg"
+const fnAttrKey = "fn"
+const aggregateAttrKey = "aggregate_id"
 
 var (
 	Debug = slog.LevelDebug
@@ -22,12 +23,13 @@ var (
 )
 
 type Filter func(record slog.Record) bool
+type Mapper func(groups []string, a slog.Attr) slog.Attr
 
 type Handler struct {
-	filters    []Filter
-	enhanced   bool
-	inner      slog.Handler
-	setDefault bool
+	filters       []Filter
+	inner         slog.Handler
+	setDefault    bool
+	aggregateIdFn func() string
 }
 
 var _ slog.Handler = (*Handler)(nil)
@@ -37,13 +39,18 @@ func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
 }
 
 func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
-	if h.enhanced {
-		pkg, fn := getPkgFunc()
-		record.AddAttrs(
-			slog.String(pkgAttrKey, pkg),
-			slog.String(fnAttrKey, fn),
-		)
+	pkg, fn := getPkgFunc()
+
+	attrs := []slog.Attr{
+		slog.String(pkgAttrKey, pkg),
+		slog.String(fnAttrKey, fn),
 	}
+
+	if h.aggregateIdFn != nil {
+		attrs = append(attrs, slog.String(aggregateAttrKey, h.aggregateIdFn()))
+	}
+
+	record.AddAttrs(attrs...)
 
 	for _, filter := range h.filters {
 		if !filter(record) {
@@ -108,14 +115,21 @@ func WithTextHandler(w io.Writer, level slog.Leveler, addSource bool) option {
 		h.inner = slog.NewTextHandler(w, &slog.HandlerOptions{
 			Level:     level,
 			AddSource: addSource,
-			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-				// Remove the temporary keys from the log entry
-				// use the h.enhanced to speed up the process
-				if h.enhanced && a.Key == pkgAttrKey || a.Key == fnAttrKey {
-					return slog.Attr{}
-				}
-				return a
-			},
+		})
+	})
+}
+
+func WithCustomAggregateIdGen(gen func() string) option {
+	return handlerOptionFunc(func(h *Handler) {
+		h.aggregateIdFn = gen
+	})
+}
+
+func WithJsonHandler(w io.Writer, level slog.Leveler, addSource bool) option {
+	return handlerOptionFunc(func(h *Handler) {
+		h.inner = slog.NewJSONHandler(w, &slog.HandlerOptions{
+			Level:     level,
+			AddSource: addSource,
 		})
 	})
 }
@@ -130,7 +144,6 @@ func WithHandler(handler slog.Handler) option {
 // if any of the filters return false the log entry is skipped
 func WithFilter(filters ...Filter) option {
 	return handlerOptionFunc(func(h *Handler) {
-		h.enhanced = true
 		h.filters = append(h.filters, filters...)
 	})
 }
