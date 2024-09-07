@@ -46,8 +46,13 @@ func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
 		slog.String(fnAttrKey, fn),
 	}
 
-	if h.aggregateIdFn != nil {
-		attrs = append(attrs, slog.String(aggregateAttrKey, h.aggregateIdFn()))
+	aggregateId := FromContext(ctx)
+	if aggregateId == "" && h.aggregateIdFn != nil {
+		aggregateId = h.aggregateIdFn()
+	}
+
+	if aggregateId != "" {
+		attrs = append(attrs, slog.String(aggregateAttrKey, aggregateId))
 	}
 
 	record.AddAttrs(attrs...)
