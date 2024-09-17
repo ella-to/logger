@@ -39,14 +39,17 @@ func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
 }
 
 func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
-	pkg, fn := getPkgFunc()
+	pkg, fn := getCurrentPkgFunc()
+	parentPkg, parentFn := getParentPkgFunc()
 
 	attrs := []slog.Attr{
 		slog.String(pkgAttrKey, pkg),
 		slog.String(fnAttrKey, fn),
+		slog.String("parent_pkg", parentPkg),
+		slog.String("parent_fn", parentFn),
 	}
 
-	aggregateId := FromContext(ctx)
+	aggregateId := GetAggregateIdFromContext(ctx)
 	if aggregateId == "" && h.aggregateIdFn != nil {
 		aggregateId = h.aggregateIdFn()
 	}
@@ -139,6 +142,12 @@ func WithJsonHandler(w io.Writer, level slog.Leveler, addSource bool) option {
 	})
 }
 
+func WithExporter(addr string) option {
+	return handlerOptionFunc(func(h *Handler) {
+		h.inner = NewHttpExporter(addr, h.inner)
+	})
+}
+
 func WithHandler(handler slog.Handler) option {
 	return handlerOptionFunc(func(h *Handler) {
 		h.inner = handler
@@ -216,12 +225,21 @@ func AttrHasAnyValues(key string, values ...any) Filter {
 	}
 }
 
-func getPkgFunc() (pkg, fn string) {
-	pc, _, _, ok := runtime.Caller(4)
+func getCurrentPkgFunc() (pkg, fn string) {
+	return getPkgFunc(5)
+}
+
+func getParentPkgFunc() (pkg, fn string) {
+	return getPkgFunc(6)
+}
+
+func getPkgFunc(skip int) (pkg, fn string) {
+	pc, _, _, ok := runtime.Caller(skip)
 	if !ok {
 		return
 	}
-	funcName := runtime.FuncForPC(pc).Name()
+	info := runtime.FuncForPC(pc)
+	funcName := info.Name()
 
 	idx := strings.LastIndex(funcName, ".")
 	if idx == -1 {

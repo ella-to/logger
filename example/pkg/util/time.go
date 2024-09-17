@@ -1,7 +1,33 @@
 package util
 
-import "log/slog"
+import (
+	"context"
+	"log/slog"
+	"sync"
 
-func GetInfo() {
-	slog.Debug("This is a log message from GetInfo")
+	"ella.to/logger/example/pkg/format"
+)
+
+func GetInfo(ctx context.Context) {
+	slog.DebugContext(ctx, "This is a log message from GetInfo")
+
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		format.GetCurrency(ctx)
+		slog.DebugContext(ctx, "This is a log message from a goroutine 1")
+
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		slog.DebugContext(ctx, "This is a log message from a goroutine 2")
+	}()
+
+	wg.Wait()
 }

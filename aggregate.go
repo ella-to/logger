@@ -5,14 +5,14 @@ import (
 	"net/http"
 )
 
-type CtxKey string
+type ctxKey string
 
 const (
-	AggregateIdKey CtxKey = "logger_aggregate_id"
+	aggregateIdKey ctxKey = "logger_aggregate_id"
 )
 
 const (
-	AggregateIdHeaderKey = "X-Logger-Aggregate-Id"
+	aggregateIdHeaderKey = "X-Logger-Aggregate-Id"
 )
 
 type Header interface {
@@ -20,19 +20,19 @@ type Header interface {
 	Get(key string) string
 }
 
-func EnhanacedHandler(gen func() string) func(next http.Handler) http.Handler {
+func InjectAggregateId(gen func() string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			foundInHeader := true
 			foundInContext := true
 
-			ctxAggregateId := FromContext(ctx)
+			ctxAggregateId := GetAggregateIdFromContext(ctx)
 			if ctxAggregateId == "" {
 				foundInContext = false
 			}
 
-			headerAggregateId := FromHeader(r.Header)
+			headerAggregateId := r.Header.Get(aggregateIdHeaderKey)
 			if headerAggregateId == "" {
 				foundInHeader = false
 			}
@@ -48,45 +48,30 @@ func EnhanacedHandler(gen func() string) func(next http.Handler) http.Handler {
 			}
 
 			if !foundInContext {
-				r = r.WithContext(context.WithValue(r.Context(), AggregateIdKey, aggregateId))
+				r = r.WithContext(context.WithValue(r.Context(), aggregateIdKey, aggregateId))
 			}
 
-			w.Header().Set(AggregateIdHeaderKey, aggregateId)
+			w.Header().Set(aggregateIdHeaderKey, aggregateId)
 
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func EnhancedHeader(header Header, gen func() string) Header {
-	aggregateId := header.Get(AggregateIdHeaderKey)
-	if aggregateId == "" {
-		aggregateId = gen()
-	}
-
-	header.Set(AggregateIdHeaderKey, aggregateId)
-
-	return header
-}
-
-func EnahancedContext(ctx context.Context, gen func() string) context.Context {
-	aggregateId := ctx.Value(AggregateIdKey)
+func SetAggregateIdToContext(ctx context.Context, gen func() string) context.Context {
+	aggregateId := ctx.Value(aggregateIdKey)
 	if aggregateId == nil {
 		aggregateId = gen()
 	}
 
-	return context.WithValue(ctx, AggregateIdKey, aggregateId)
+	return context.WithValue(ctx, aggregateIdKey, aggregateId)
 }
 
-func FromContext(ctx context.Context) string {
-	aggregateId := ctx.Value(AggregateIdKey)
+func GetAggregateIdFromContext(ctx context.Context) string {
+	aggregateId := ctx.Value(aggregateIdKey)
 	if aggregateId == nil {
 		return ""
 	}
 
 	return aggregateId.(string)
-}
-
-func FromHeader(header Header) string {
-	return header.Get(AggregateIdHeaderKey)
 }
