@@ -20,7 +20,7 @@ type Header interface {
 	Get(key string) string
 }
 
-func InjectAggregateId(gen func() string) func(next http.Handler) http.Handler {
+func InjectAggregateId() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -40,7 +40,7 @@ func InjectAggregateId(gen func() string) func(next http.Handler) http.Handler {
 			var aggregateId string
 
 			if !foundInHeader && !foundInContext {
-				aggregateId = gen()
+				aggregateId = genId()
 			} else if foundInContext {
 				aggregateId = ctxAggregateId
 			} else {
@@ -58,10 +58,10 @@ func InjectAggregateId(gen func() string) func(next http.Handler) http.Handler {
 	}
 }
 
-func SetAggregateIdToContext(ctx context.Context, gen func() string) context.Context {
+func SetAggregateIdToContext(ctx context.Context) context.Context {
 	aggregateId := ctx.Value(aggregateIdKey)
 	if aggregateId == nil {
-		aggregateId = gen()
+		aggregateId = genId()
 	}
 
 	return context.WithValue(ctx, aggregateIdKey, aggregateId)

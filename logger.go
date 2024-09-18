@@ -26,10 +26,9 @@ type Filter func(record slog.Record) bool
 type Mapper func(groups []string, a slog.Attr) slog.Attr
 
 type Handler struct {
-	filters       []Filter
-	inner         slog.Handler
-	setDefault    bool
-	aggregateIdFn func() string
+	filters    []Filter
+	inner      slog.Handler
+	setDefault bool
 }
 
 var _ slog.Handler = (*Handler)(nil)
@@ -50,8 +49,8 @@ func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
 	}
 
 	aggregateId := GetAggregateIdFromContext(ctx)
-	if aggregateId == "" && h.aggregateIdFn != nil {
-		aggregateId = h.aggregateIdFn()
+	if aggregateId == "" {
+		aggregateId = genId()
 	}
 
 	if aggregateId != "" {
@@ -124,12 +123,6 @@ func WithTextHandler(w io.Writer, level slog.Leveler, addSource bool) option {
 			Level:     level,
 			AddSource: addSource,
 		})
-	})
-}
-
-func WithCustomAggregateIdGen(gen func() string) option {
-	return handlerOptionFunc(func(h *Handler) {
-		h.aggregateIdFn = gen
 	})
 }
 

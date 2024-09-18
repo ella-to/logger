@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"sync/atomic"
 	"time"
 )
 
@@ -15,14 +14,9 @@ type HttpExporter struct {
 	addr    string
 	client  *http.Client
 	handler slog.Handler
-	counter atomic.Int64
 }
 
 var _ slog.Handler = (*HttpExporter)(nil)
-
-func (e *HttpExporter) genId() string {
-	return fmt.Sprintf("%d", e.counter.Add(1))
-}
 
 func (e *HttpExporter) Enabled(ctx context.Context, level slog.Level) bool {
 	return e.handler.Enabled(ctx, level)
@@ -49,7 +43,7 @@ func (e *HttpExporter) Handle(ctx context.Context, r slog.Record) error {
 	})
 
 	logRecord := Record{
-		Id:        e.genId(),
+		Id:        genId(),
 		Level:     r.Level.String(),
 		Message:   r.Message,
 		Meta:      meta,
