@@ -105,7 +105,7 @@ func NewHttpExporter(addr string, handler slog.Handler, opts ...httpExporterOpts
 	addr = fmt.Sprintf("%s/logs", addr)
 
 	httpClient := &http.Client{
-		Timeout: 5 * time.Second,
+		// Timeout: 5 * time.Second,
 	}
 
 	return &HttpExporter{
@@ -115,15 +115,8 @@ func NewHttpExporter(addr string, handler slog.Handler, opts ...httpExporterOpts
 			go func() {
 				var err error
 
-				for i, record := range records {
-					if i > 0 {
-						_, err = io.WriteString(pw, "\n")
-						if err != nil {
-							break
-						}
-					}
-
-					err := json.NewEncoder(pw).Encode(record)
+				for _, record := range records {
+					err = json.NewEncoder(pw).Encode(record)
 					if err != nil {
 						break
 					}
