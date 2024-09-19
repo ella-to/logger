@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"syscall"
 
 	"ella.to/httputil"
@@ -20,16 +20,16 @@ import (
 )
 
 var (
-	defaultAddr = ":2022"
-	env         = strings.ToLower(getStringEnv("LOGGER_ENV", "dev"))
+	version     = "v0.0.2"
+	defaultAddr = "localhost:2022"
+	env         = strings.ToLower(getStringEnv("LOGGER_ENV", "prod"))
 	isDev       = env == "dev"
 )
 
 type Stream struct {
-	rwlock     sync.RWMutex
-	conns      map[int64]sse.Pusher
-	idCounter  int64
-	msgCounter atomic.Int64
+	rwlock    sync.RWMutex
+	conns     map[int64]sse.Pusher
+	idCounter int64
 }
 
 func (s *Stream) Add(pusher sse.Pusher) func() {
@@ -61,7 +61,22 @@ func (s *Stream) Broadcast(ctx context.Context, msg string) error {
 }
 
 func main() {
+	fmt.Printf(`
+██╗░░░░░░█████╗░░██████╗░░██████╗░███████╗██████╗░
+██║░░░░░██╔══██╗██╔════╝░██╔════╝░██╔════╝██╔══██╗
+██║░░░░░██║░░██║██║░░██╗░██║░░██╗░█████╗░░██████╔╝
+██║░░░░░██║░░██║██║░░╚██╗██║░░╚██╗██╔══╝░░██╔══██╗
+███████╗╚█████╔╝╚██████╔╝╚██████╔╝███████╗██║░░██║
+╚══════╝░╚════╝░░╚═════╝░░╚═════╝░╚══════╝╚═╝░░╚═╝ %s
+`, version)
+
 	ctx := context.Background()
+
+	if len(os.Args) > 1 {
+		defaultAddr = os.Args[1]
+	}
+
+	fmt.Println("Running on ", defaultAddr)
 
 	stream := &Stream{
 		conns: make(map[int64]sse.Pusher),

@@ -9,7 +9,7 @@
 
 # Logger: Context-Aware Logging for Better Insights
 
-`logger` is an attempt to improve log visualization by embedding parent/child relationships within the logging context, making it easier to trace log flows.
+`logger` is an attempt to improve log visualization by embedding parent/child relationships within the logging context, making it easier to trace log flows. It is uses `log/slog` package under the hood.
 
 ## Getting Started
 
@@ -18,7 +18,7 @@
 To install the logger binary, run the following command:
 
 ```bash
-go install ella.to/logger/cmd/logger@main
+go install ella.to/logger/cmd/logger@latest
 ```
 
 This binary includes both the UI and server components. You can start the logger server by simply running:
@@ -27,10 +27,10 @@ This binary includes both the UI and server components. You can start the logger
 logger
 ```
 
-By default, the server runs on port `2022`. To change the port, specify it as an argument:
+By default, the server runs on address `localhost:2022`. To change the port, specify it as an argument:
 
 ```bash
-logger 2022
+logger localhost:2021
 ```
 
 You can then access the UI via your browser at:  
@@ -41,7 +41,7 @@ You can then access the UI via your browser at:
 First, include the logger library in your project by running:
 
 ```bash
-go get ella.to/logger@main
+go get ella.to/logger@latest
 ```
 
 Next, add the following code to the `main` function of your project to set up the logger:
@@ -51,9 +51,10 @@ package main
 
 import (
     // other imports
-    "ella.to/logger"
-    "golang.org/x/exp/slog"
+    "log/slog"
     "os"
+
+    "ella.to/logger"
 )
 
 func main() {
