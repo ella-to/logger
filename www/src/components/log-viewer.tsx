@@ -11,16 +11,16 @@ type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
 
 type LogEntry = {
   id: string
+  parent_id: string
   message: string
   level: LogLevel
   timestamp: string
   meta: {
-    aggregate_id?: string
     pkg?: string
     fn?: string
-    [key: string]: string | number | undefined
+    [key: string]: string | number | boolean | undefined
   }
-  children?: LogEntry[]
+  children: LogEntry[]
 }
 
 const levelColors: Record<LogLevel, string> = {
@@ -86,6 +86,14 @@ const LogEntryRow: React.FC<{
   )
 }
 
+function toString(value: any): string {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return `${value}`
+  }
+
+  return JSON.stringify(value)
+}
+
 const LogDetails: React.FC<{ selectedLog: LogEntry | null }> = ({ selectedLog }) => {
   if (!selectedLog) {
     return <div className="p-4 text-center text-muted-foreground">Select a log entry to view details</div>
@@ -101,11 +109,13 @@ const LogDetails: React.FC<{ selectedLog: LogEntry | null }> = ({ selectedLog })
         <div>
           <span className="font-medium">Timestamp:</span> {selectedLog.timestamp.toLocaleString()}
         </div>
-        {Object.entries(selectedLog.meta).map(([key, value]) => (
-          <div key={key} className="col-span-2">
-            <span className="font-medium">{key}:</span> {value}
-          </div>
-        ))}
+        {Object.entries(selectedLog.meta).map(([key, value], index) => {
+          return (
+            <div key={`${selectedLog.id}-${index}`} className="col-span-2">
+              <span className="font-medium">{key}:</span> {toString(value)}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -131,66 +141,42 @@ const LogTable: React.FC<{
   </Table>
 )
 
-function sortLogEntriesByAggregateId(logs: LogEntry[]): LogEntry[][] {
-  var bucketsIdIdx: Record<string, number> = {}
-  var buckets: LogEntry[][] = []
+function buildHierarchy(logs: LogEntry[]): LogEntry[] {
+  const map: { [key: string]: LogEntry } = {}
+  const hierarchy: LogEntry[] = []
+
+  // First, create a map for easy lookup by log.id
   logs.forEach(log => {
-    const aggregateId = log.meta.aggregate_id
+    map[log.id] = { ...log, children: [] }
+  })
 
-    if (!aggregateId) {
-      buckets.push([log])
-      return
-    }
-
-    let idx = bucketsIdIdx[aggregateId]
-    let bucket: LogEntry[]
-    if (idx === undefined) {
-      idx = buckets.length
-      bucketsIdIdx[aggregateId] = idx
-      bucket = []
-      buckets.push(bucket)
+  // Then, loop through the logs and build the hierarchy
+  logs.forEach(log => {
+    const parentLog = map[log.parent_id]
+    if (parentLog) {
+      // If the log has a parent, add it to the parent's children array
+      parentLog.children.push(map[log.id])
     } else {
-      bucket = buckets[idx]
+      // If it doesn't have a parent, it's a root element
+      hierarchy.push(map[log.id])
     }
-
-    bucket.push(log)
   })
 
-  return buckets
-}
-
-function sortBucketByTimestamp(bucket: LogEntry[]): LogEntry[] {
-  return bucket.sort((a, b) => {
-    return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  })
-}
-
-function build(logs: LogEntry[]): LogEntry {
-  const root = logs[0]
-
-  if (logs.length === 1) {
-    return root
-  }
-
-  root.children = logs.slice(1)
-
-  return root
+  return hierarchy
 }
 
 function process(logs: LogEntry[]): LogEntry[] {
-  const buckets = sortLogEntriesByAggregateId(sortBucketByTimestamp(logs))
-
-  return buckets.map(bucket => {
-    return build(bucket)
+  logs.sort((a, b) => {
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   })
+
+  return buildHierarchy(logs)
 }
 
 export function LogViewerComponent() {
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null)
   const rawLogs = useSSE<LogEntry>('/logs')
   const logs = useProcess(rawLogs, process)
-
-  console.log(logs)
 
   return (
     <div className="w-full h-screen flex flex-col bg-background">

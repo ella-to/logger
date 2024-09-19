@@ -34,17 +34,15 @@ type Stream struct {
 
 func (s *Stream) Add(pusher sse.Pusher) func() {
 	s.rwlock.Lock()
-	defer s.rwlock.Unlock()
-
 	s.idCounter++
 	id := s.idCounter
 	s.conns[id] = pusher
+	s.rwlock.Unlock()
 
 	return func() {
 		s.rwlock.Lock()
-		defer s.rwlock.Unlock()
-
 		delete(s.conns, id)
+		s.rwlock.Unlock()
 	}
 }
 

@@ -1,7 +1,5 @@
 ella.to/httputil v0.0.1 h1:ggwSYr1s0MEL+HyKH23UfqY7dj0VhzW7p4DN/S2KvK0=
 ella.to/httputil v0.0.1/go.mod h1:f/wYjPnm5nWDwo7YQX4judr0Z6HivHmenVROABP8waw=
-ella.to/sse v0.0.1 h1:zoxtMzSYrggKC+PJy+GPIeaT6JfYRTCFs38G2pL2ZeE=
-ella.to/sse v0.0.1/go.mod h1:BHO+K9lPEBU+G7KZaSOKFVw1/scFb41waHcXfvwxLLI=
 ella.to/sse v0.0.2 h1:H5eRMjEEvD89mWCKuYUnWyRpb+ZfeWcSyxZjp80vx38=
 ella.to/sse v0.0.2/go.mod h1:BHO+K9lPEBU+G7KZaSOKFVw1/scFb41waHcXfvwxLLI=
 github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
