@@ -62,12 +62,12 @@ func main() {
         slog.New(
             logger.NewHttpExporter(
                 "http://localhost:2022", // logger server address
-                slog.NewJSONHandler(os.Stdout, nil),
+                slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+                    Level: slog.LevelDebug,
+                }),
             ),
         ),
     )
-
-    slog.SetLoggerLevel(slog.LevelDebug)
 
     // your application logic
 }

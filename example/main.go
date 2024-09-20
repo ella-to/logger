@@ -10,16 +10,17 @@ import (
 )
 
 func main() {
+
 	slog.SetDefault(
 		slog.New(
 			logger.NewHttpExporter(
-				"http://localhost:2022",
-				slog.NewJSONHandler(os.Stdout, nil),
+				"http://localhost:2022", // logger server address
+				slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+					Level: slog.LevelDebug,
+				}),
 			),
 		),
 	)
-
-	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	ctx := context.Background()
 
@@ -32,7 +33,7 @@ func main() {
 
 func fn1(ctx context.Context) {
 	logger.Info(ctx, "fn1 started")
-	defer logger.Info(ctx, "fn1 finished")
+	defer logger.Debug(ctx, "fn1 finished")
 
 	// time.Sleep(1 * time.Second)
 }
