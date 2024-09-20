@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"context"
+	"io"
 	"net/http"
 	"time"
 )
@@ -28,4 +30,16 @@ func HttpMiddleware() func(next http.Handler) http.Handler {
 			Info(ctx, "finished http request", "method", r.Method, "url", r.URL.String(), "duration", time.Since(start))
 		})
 	}
+}
+
+func NewHttpRequest(ctx context.Context, method string, url string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	parentId := getLogParentId(ctx)
+	req.Header.Set(headerKeyLogParentId, parentId)
+
+	return req, nil
 }
