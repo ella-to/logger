@@ -22,12 +22,12 @@ func HttpMiddleware() func(next http.Handler) http.Handler {
 			}
 
 			ctx := setLogParentId(r.Context(), logParentId)
-			Info(ctx, "received http request")
+			ctx = Info(ctx, "received http request", "method", r.Method, "url", r.URL.String())
 
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 
-			Info(ctx, "finished http request", "method", r.Method, "url", r.URL.String(), "duration", time.Since(start))
+			Info(ctx, "finished http request", "duration", time.Since(start).String())
 		})
 	}
 }
