@@ -9,7 +9,7 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "./cmd/logger/main.go",
+      "program": "./cmd/logger-server/main.go",
       "cwd": ".",
       "env": {
         "LOGGER_ENV": "dev",

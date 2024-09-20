@@ -40,6 +40,13 @@ func (e *HttpExporter) Handle(ctx context.Context, r slog.Record) error {
 	parentId := getLogParentId(ctx)
 	pkg, fn := getPkgFunc(5)
 
+	// If logId is empty, generate a new one
+	// this is happening when the log is not coming from this logger library
+	// and we need to generate a new logId.
+	if logId == "" {
+		logId = newId()
+	}
+
 	meta := make(map[string]any)
 	r.Attrs(func(a slog.Attr) bool {
 		meta[a.Key] = a.Value.Any()
