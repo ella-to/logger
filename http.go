@@ -38,8 +38,13 @@ func NewHttpRequest(ctx context.Context, method string, url string, body io.Read
 		return nil, err
 	}
 
-	parentId := getLogParentId(ctx)
-	req.Header.Set(headerKeyLogParentId, parentId)
+	HttpUpdateRequest(req)
 
 	return req, nil
+}
+
+// HttpUpdateRequest updates the http request with the log parent id added to the header
+func HttpUpdateRequest(r *http.Request) {
+	parentId := getLogParentId(r.Context())
+	r.Header.Set(headerKeyLogParentId, parentId)
 }
