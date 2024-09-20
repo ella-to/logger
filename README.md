@@ -18,19 +18,19 @@
 To install the logger binary, run the following command:
 
 ```bash
-go install ella.to/logger/cmd/logger@latest
+go install ella.to/logger/cmd/logger-server@latest
 ```
 
 This binary includes both the UI and server components. You can start the logger server by simply running:
 
 ```bash
-logger
+logger-server
 ```
 
 By default, the server runs on address `localhost:2022`. To change the port, specify it as an argument:
 
 ```bash
-logger localhost:2021
+logger-server localhost:2021
 ```
 
 You can then access the UI via your browser at:  
