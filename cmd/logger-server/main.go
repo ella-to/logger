@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	version     = "v0.0.2"
+	version     = "v0.0.3"
 	defaultAddr = "localhost:2022"
 	env         = strings.ToLower(getStringEnv("LOGGER_ENV", "prod"))
 	isDev       = env == "dev"
