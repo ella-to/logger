@@ -98,14 +98,14 @@ func main() {
 				line := scanner.Text()
 				if err := stream.Broadcast(ctx, line); err != nil {
 					http.Error(w, "failed to broadcast message", http.StatusInternalServerError)
-					slog.ErrorContext(ctx, "failed to broadcast message", "err", err)
+					fmt.Println("failed to broadcast message, ", "err: ", err)
 					return
 				}
 			}
 
 			if err := scanner.Err(); err != nil {
 				http.Error(w, "failed to scan request body", http.StatusInternalServerError)
-				slog.ErrorContext(ctx, "failed to scan request body", "err", err)
+				fmt.Println("failed to scan request body, ", "err: ", err)
 				return
 			}
 
@@ -121,7 +121,7 @@ func main() {
 			pusher, err := sse.CreatePusher(w)
 			if err != nil {
 				http.Error(w, "failed to create pusher", http.StatusInternalServerError)
-				slog.ErrorContext(ctx, "failed to create pusher", "err", err)
+				fmt.Println(ctx, "failed to create pusher, ", "err: ", err)
 				return
 			}
 
@@ -161,7 +161,7 @@ func main() {
 	go func() {
 		slog.InfoContext(ctx, "starting server", "addr", defaultAddr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.ErrorContext(ctx, "failed to listen and serve", "err", err)
+			fmt.Println(ctx, "failed to listen and serve, ", "err: ", err)
 			os.Exit(1)
 		}
 	}()
@@ -172,7 +172,7 @@ func main() {
 	<-sig
 
 	if err := srv.Shutdown(ctx); err != nil {
-		slog.ErrorContext(ctx, "failed to shutdown server", "err", err)
+		fmt.Println(ctx, "failed to shutdown server, ", "err: ", err)
 		os.Exit(1)
 	}
 }

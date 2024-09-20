@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"log/slog"
+	"fmt"
 	"time"
 )
 
@@ -43,10 +43,10 @@ func newBuffer[T any](size int, interval time.Duration, fn func([]T) error) *buf
 				if len(c.buffer) >= size {
 					err := fn(c.buffer)
 					if err != nil {
-						slog.Error("retry to flush but failed to flush buffer", "err", err, "buffer_size", len(c.buffer))
+						fmt.Println("retry to flush but failed to flush buffer, ", "err: ", err, ", buffer_size: ", len(c.buffer))
 						continue
 					}
-					slog.Debug("buffer flushed", "buffer_size", len(c.buffer))
+					fmt.Println("buffer flushed, ", "buffer_size: ", len(c.buffer))
 					c.buffer = c.buffer[:0]
 				}
 
@@ -55,10 +55,10 @@ func newBuffer[T any](size int, interval time.Duration, fn func([]T) error) *buf
 				if len(c.buffer) >= size {
 					err := fn(c.buffer)
 					if err != nil {
-						slog.Error("buffer reached limit but failed to flush buffer", "err", err, "buffer_size", len(c.buffer))
+						fmt.Println("buffer reached limit but failed to flush buffer, ", "err: ", err, ", buffer_size: ", len(c.buffer))
 						continue
 					}
-					slog.Debug("buffer flushed", "buffer_size", len(c.buffer))
+					fmt.Println("buffer flushed, ", "buffer_size: ", len(c.buffer))
 					c.buffer = c.buffer[:0]
 				}
 
@@ -66,10 +66,10 @@ func newBuffer[T any](size int, interval time.Duration, fn func([]T) error) *buf
 				if len(c.buffer) > 0 {
 					err := fn(c.buffer)
 					if err != nil {
-						slog.Error("interval happens but failed to flush buffer", "err", err, "buffer_size", len(c.buffer))
+						fmt.Println("interval happens but failed to flush buffer, ", "err: ", err, ", buffer_size: ", len(c.buffer))
 						continue
 					}
-					slog.Debug("buffer flushed", "buffer_size", len(c.buffer))
+					fmt.Println("buffer flushed, ", "buffer_size: ", len(c.buffer))
 					c.buffer = c.buffer[:0]
 				}
 
