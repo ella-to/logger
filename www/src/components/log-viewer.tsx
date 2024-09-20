@@ -167,7 +167,13 @@ function buildHierarchy(logs: LogEntry[]): LogEntry[] {
 
 function process(logs: LogEntry[]): LogEntry[] {
   logs.sort((a, b) => {
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    // return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    if (a.id > b.id) {
+      return 1
+    } else if (a.id < b.id) {
+      return -1
+    }
+    return 0
   })
 
   return buildHierarchy(logs)
