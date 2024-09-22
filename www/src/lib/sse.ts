@@ -1,6 +1,6 @@
 import { useEffect, useState, useDeferredValue, useMemo } from 'react'
 
-export function useSSE<T>(addr: string): T[] {
+export function useSSE<T>(addr: string): [T[], () => void] {
   const [messages, setMessages] = useState<T[]>([])
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export function useSSE<T>(addr: string): T[] {
     }
   }, [addr])
 
-  return messages
+  return [messages, () => setMessages([])]
 }
 
 export function useProcess<T, V>(arr: T[], fn: (arg: T[]) => V[]): V[] {

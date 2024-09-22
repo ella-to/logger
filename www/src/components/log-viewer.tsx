@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { ChevronRight, ChevronDown, Settings } from 'lucide-react'
+import { ChevronRight, ChevronDown, Settings, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -245,7 +245,7 @@ const defaultRawLogFormater = `  // Example raw log formatter
 
 export function LogViewerComponent() {
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null)
-  const rawLogs = useSSE<LogEntry>('/logs')
+  const [rawLogs, resetRawLogs] = useSSE<LogEntry>('/logs')
   const logs = useProcess(rawLogs, process)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [rawLogFormtaterString, setRawLogFormaterString] = useState(defaultRawLogFormater)
@@ -266,6 +266,11 @@ export function LogViewerComponent() {
     setRawLogFormater(() => fn)
   }
 
+  const handleReset = () => {
+    setSelectedLog(null)
+    resetRawLogs()
+  }
+
   return (
     <div className="w-full h-screen flex flex-col bg-background">
       <div className="p-4 border-b flex justify-between items-center">
@@ -273,9 +278,14 @@ export function LogViewerComponent() {
           <h2 className="text-2xl font-bold mb-4">Log Viewer</h2>
           <LogLegend />
         </div>
-        <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)} aria-label="Open settings">
-          <Settings className="h-4 w-4" />
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="icon" onClick={handleReset} aria-label="Reset logs">
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)} aria-label="Open settings">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       <div className="flex-grow flex flex-col overflow-hidden">
         <div className="flex-grow overflow-hidden">
