@@ -1,11 +1,21 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Logger View</title>
-    <script type="module" crossorigin src="/assets/index-CPBpOUiD.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CxBgElcP.css">
+    <script>
+      var global = {
+        logFormater: log => {
+          return {
+            title: log.message,
+            subtitle: `${log.meta.pkg} - ${log.meta.fn}`,
+          }
+        },
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-DulpqoIw.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D19gOIlM.css">
   </head>
   <body>
     <div id="root"></div>
