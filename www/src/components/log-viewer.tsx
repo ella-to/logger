@@ -96,6 +96,14 @@ const LogEntryRow: React.FC<{
   )
 }
 
+function toString(value: any): string {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return `${value}`
+  }
+
+  return JSON.stringify(value)
+}
+
 const LogDetails: React.FC<{ selectedLog: LogEntry | null }> = ({ selectedLog }) => {
   if (!selectedLog) {
     return <div className="p-4 text-center text-muted-foreground">Select a log entry to view details</div>
@@ -113,7 +121,7 @@ const LogDetails: React.FC<{ selectedLog: LogEntry | null }> = ({ selectedLog })
         </div>
         {Object.entries(selectedLog.meta).map(([key, value]) => (
           <div key={key} className="col-span-2">
-            <span className="font-medium">{key}:</span> {value}
+            <span className="font-medium">{key}:</span> {toString(value)}
           </div>
         ))}
       </div>
